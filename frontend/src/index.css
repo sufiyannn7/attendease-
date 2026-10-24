@@ -1,10 +1,26 @@
 @import "tailwindcss";
 
 @theme {
-  --color-slatebg: #f8fafc;
+  --color-slatebg: #f6faf8;
   --color-emerald2: #059669;
   --color-emerald-soft: #ecfdf5;
   --font-display: "Poppins", ui-sans-serif, system-ui, sans-serif;
 }
 
-body { font-family: var(--font-display); background: var(--color-slatebg); color: #334155; font-weight: 500; }
+body { font-family: var(--font-display); background: linear-gradient(170deg, #f6faf8 0%, #eef7f1 100%); color: #334155; min-height: 100vh; }
+
+@keyframes marquee { to { transform: translateX(-50%); } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+@keyframes tickPop { 0% { transform: scale(0); } 80% { transform: scale(1.15); } 100% { transform: scale(1); } }
+@keyframes scan { 0%,100% { opacity: .4; } 50% { opacity: 1; } }
+
+.reveal > * { opacity: 0; animation: fadeUp .8s cubic-bezier(.2,.7,.3,1) forwards; }
+.reveal > *:nth-child(1) { animation-delay: .05s } .reveal > *:nth-child(2) { animation-delay: .15s }
+.reveal > *:nth-child(3) { animation-delay: .25s } .reveal > *:nth-child(4) { animation-delay: .35s }
+
+.marquee { display: flex; width: max-content; animation: marquee 28s linear infinite; }
+.hover-lift { transition: transform .3s cubic-bezier(.2,.7,.3,1), box-shadow .3s; }
+.hover-lift:hover { transform: translateY(-6px); box-shadow: 0 20px 40px -18px rgba(5,150,105,.3); }
+.tick { animation: tickPop .5s cubic-bezier(.2,.7,.3,1) both; }
+.scan { animation: scan 2s ease-in-out infinite; }
+.glass { background: rgba(255,255,255,.8); backdrop-filter: blur(14px); border: 1px solid rgba(5,150,105,.12); box-shadow: 0 8px 30px rgba(5,150,105,.07); }
