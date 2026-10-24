@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+@theme {
+  --color-slatebg: #f8fafc;
+  --color-emerald2: #059669;
+  --color-emerald-soft: #ecfdf5;
+  --font-display: "Poppins", ui-sans-serif, system-ui, sans-serif;
+}
+
+body { font-family: var(--font-display); background: var(--color-slatebg); color: #334155; font-weight: 500; }
