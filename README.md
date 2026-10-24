@@ -165,6 +165,9 @@ Live links: backend — [add URL] · frontend — [add URL]
 - Teacher routes verify course ownership; students are enrollment-checked.
 - bcrypt(12) hashing, no account enumeration, 7-day JWTs, 401 auto-logout.
 
+- **Defaulter radar** — ranked sub-threshold students with risk levels (watch/high/critical) and how many classes they need to attend.
+- **Student month calendar** — per-day attendance status for any month.
+
 ## Roadmap
 
 - Real camera QR scanning of the rotating code.

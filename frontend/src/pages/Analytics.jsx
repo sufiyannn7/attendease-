@@ -9,11 +9,15 @@ export default function Analytics() {
   const { id } = useParams();
   const { user } = useAuth();
   const [data, setData] = useState(null);
+  const [defaulters, setDefaulters] = useState(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
     client.get(`/courses/${id}/analytics`).then((r) => setData(r.data)).catch((err) => setError(err.message));
-  }, [id]);
+    if (user?.role === 'teacher') {
+      client.get(`/courses/${id}/defaulters`).then((r) => setDefaulters(r.data)).catch(() => {});
+    }
+  }, [id, user]);
 
   if (error) return <div className="min-h-screen"><Navbar /><main className="mx-auto max-w-4xl px-4 py-10"><ErrorState message={error} onRetry={() => window.location.reload()} /></main></div>;
   if (!data) return <div className="min-h-screen"><Navbar /><Loading label="Crunching attendance…" /></div>;
@@ -31,6 +35,24 @@ export default function Analytics() {
           )}
         </div>
         <p className="text-slate-500">{data.sessions} sessions · {data.closedSessions} closed · {data.anomalies} device anomal{data.anomalies === 1 ? 'y' : 'ies'}</p>
+
+        {defaulters && defaulters.defaulters.length > 0 && (
+          <section className="mt-6 rounded-2xl border-2 border-red-200 bg-red-50 p-5">
+            <h2 className="font-bold text-red-700">⚠️ Defaulter radar — below {defaulters.threshold}%</h2>
+            <ul className="mt-3 space-y-2">
+              {defaulters.defaulters.map((d, i) => (
+                <li key={i} className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-white p-3 text-sm">
+                  <span><strong>{d.student?.name}</strong> <span className="text-slate-400">{d.student?.rollNo}</span></span>
+                  <span className="flex items-center gap-2">
+                    <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold uppercase ${d.risk === 'critical' ? 'bg-red-600 text-white' : d.risk === 'high' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>{d.risk}</span>
+                    <span className="font-bold text-red-700">{d.percent}%</span>
+                    <span className="text-xs text-slate-400">needs {d.deficitTo75} more</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         {user?.role === 'teacher' && (
           <section className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white">
