@@ -25,7 +25,7 @@ export default function Courses() {
   async function openEnroll(courseId) {
     setEnrollFor(courseId);
     setEnrollEmails('');
-    try { setRoster(await client.get(`/courses/${courseId}/students`)); } catch { setRoster([]); }
+    try { setRoster((await client.get(`/courses/${courseId}/students`)).data); } catch { setRoster([]); }
   }
 
   async function enrollStudents() {
@@ -38,7 +38,7 @@ export default function Courses() {
       catch { fail++; }
     }
     toast(`Enrolled ${ok}${fail ? `, ${fail} failed (not registered or already in)` : ''}`);
-    try { setRoster(await client.get(`/courses/${enrollFor}/students`)); } catch {}
+    try { setRoster((await client.get(`/courses/${enrollFor}/students`)).data); } catch {}
     load();
     setEnrollBusy(false);
   }
