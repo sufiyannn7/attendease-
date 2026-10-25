@@ -5,6 +5,7 @@ import Navbar from '../components/Navbar.jsx';
 import { Loading, ErrorState } from '../components/states.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
+import SceneBackground from '../components/SceneBackground.jsx';
 
 function TokenMatrix({ token }) {
   const cells = token.split('').map((c) => parseInt(c, 16));
@@ -62,9 +63,10 @@ export default function TeacherSession() {
   const pct = roster.enrolled ? Math.round((roster.presentCount / roster.enrolled) * 100) : 0;
 
   return (
-    <div className="min-h-screen">
+    <div className="relative min-h-screen">
+      <SceneBackground variant="session" />
       <Navbar />
-      <main className="mx-auto max-w-4xl px-4 py-10">
+      <main className="relative mx-auto max-w-4xl px-4 py-10">
         <Link to="/courses" className="mono text-[10px] font-bold uppercase tracking-[0.3em] text-pencil hover:text-emerald">← courses</Link>
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
@@ -78,6 +80,14 @@ export default function TeacherSession() {
             <button onClick={() => act(() => client.post(`/sessions/${sessionId}/close`), 'Closed — everyone unmarked is absent')}
               className="btn-ink rounded-full px-5 py-2.5 text-sm font-bold">Close session</button>
           )}
+        </div>
+
+        {/* quick stats strip */}
+        <div className="mono mt-4 grid grid-cols-4 gap-2 text-center text-[10px] uppercase tracking-wider text-pencil">
+          <div className="card px-3 py-2.5"><p className="text-xl font-bold text-emerald-deep">{roster.presentCount}</p>present</div>
+          <div className="card px-3 py-2.5"><p className="text-xl font-bold text-coral">{roster.enrolled - roster.presentCount}</p>to mark</div>
+          <div className="card px-3 py-2.5"><p className="text-xl font-bold text-[#8a6a10]">{requests.length}</p>requests</div>
+          <div className="card px-3 py-2.5"><p className="text-xl font-bold text-ink">{roster.enrolled}</p>enrolled</div>
         </div>
 
         {/* rotating QR signal */}

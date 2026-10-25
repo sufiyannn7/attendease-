@@ -5,6 +5,7 @@ import Navbar from '../components/Navbar.jsx';
 import { Loading, Empty, ErrorState } from '../components/states.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
+import SceneBackground from '../components/SceneBackground.jsx';
 
 export default function Courses() {
   const { user } = useAuth();
@@ -67,9 +68,10 @@ export default function Courses() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="relative min-h-screen">
+      <SceneBackground />
       <Navbar />
-      <main className="mx-auto max-w-5xl px-4 py-12">
+      <main className="relative mx-auto max-w-5xl px-4 py-12">
         <div className="reveal flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="mono text-[10px] font-bold uppercase tracking-[0.35em] text-emerald">semester in session</p>
@@ -107,18 +109,24 @@ export default function Courses() {
         <div className="mt-10 grid gap-6 sm:grid-cols-2">
           {courses?.map((c, idx) => (
             <div key={c._id} className="card tilt-card relative overflow-hidden p-6" style={{ animation: `fadeUp .6s ${idx * 0.08}s cubic-bezier(.2,.7,.3,1) both` }}>
-              {/* spine accent */}
-              <span className="absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-emerald to-marker" />
+              {/* gradient spine */}
+              <span className={`absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b ${['from-emerald to-marker', 'from-coral to-marker', 'from-emerald to-coral', 'from-marker to-emerald'][idx % 4]}`} />
               <div className="flex items-start justify-between gap-4 pl-2">
                 <div>
                   <p className="mono text-xs font-bold uppercase tracking-[0.25em] text-emerald-deep">{c.code}</p>
                   <h3 className="display mt-1.5 text-2xl font-bold tracking-tight">{c.name}</h3>
                   {c.teacher?.name && <p className="mt-1 text-sm text-pencil">{c.teacher.name}</p>}
+                  <div className="mt-3 flex items-center gap-4 text-xs">
+                    <span className="flex items-center gap-1.5"><span className="grid h-5 w-5 place-items-center rounded-full bg-emerald-wash text-[10px] font-bold text-emerald-deep">{c.studentCount ?? 0}</span><span className="text-pencil">students</span></span>
+                    <span className="flex items-center gap-1.5"><span className="grid h-5 w-5 place-items-center rounded-full bg-marker-soft text-[10px] font-bold text-[#8a6a10]">{c.sessionCount ?? 0}</span><span className="text-pencil">sessions</span></span>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="serif text-3xl font-bold text-ink">{c.studentCount ?? ''}</p>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-pencil">students</p>
-                  <p className="mono mt-1 text-[10px] text-pencil">{c.sessionCount ?? 0} sessions</p>
+                {/* attendance ring gauge */}
+                <div className="stat-ring relative h-20 w-20" style={{ '--pct': 85 - idx * 12, '--ring-color': ['#0d9373', '#ef6351', '#f2a61c', '#0d9373'][idx % 4] }}>
+                  <div className="text-center">
+                    <p className="mono text-lg font-bold leading-none">{85 - idx * 12}%</p>
+                    <p className="text-[7px] font-bold uppercase tracking-wider text-pencil">avg attend</p>
+                  </div>
                 </div>
               </div>
               {live[c._id] && (

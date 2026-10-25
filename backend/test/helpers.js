@@ -6,6 +6,10 @@ async function startTest() {
   const mem = await MongoMemoryServer.create();
   await mongoose.connect(mem.getUri());
   const data = await seed();
+  data.db = data.courses[0]; // backwards compat for existing tests
+  const Session = require('../models/Session.model');
+  data.sessions = await Session.find({ course: data.db._id }).sort('startsAt');
+  data.reg = data.sessions[data.sessions.length - 1];
   const app = require('../app');
   const server = app.listen(0);
   const base = `http://127.0.0.1:${server.address().port}/api`;

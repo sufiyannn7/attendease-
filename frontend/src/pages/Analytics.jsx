@@ -4,6 +4,7 @@ import client from '../api/client.js';
 import Navbar from '../components/Navbar.jsx';
 import { Loading, ErrorState } from '../components/states.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import SceneBackground from '../components/SceneBackground.jsx';
 
 export default function Analytics() {
   const { id } = useParams();
@@ -25,9 +26,10 @@ export default function Analytics() {
   const maxRatio = Math.max(...data.heatmap.map((h) => h.ratio), 1);
 
   return (
-    <div className="min-h-screen">
+    <div className="relative min-h-screen">
+      <SceneBackground />
       <Navbar />
-      <main className="mx-auto max-w-4xl px-4 py-10">
+      <main className="relative mx-auto max-w-4xl px-4 py-10">
         <Link to="/courses" className="mono text-[10px] font-bold uppercase tracking-[0.3em] text-pencil hover:text-emerald">← courses</Link>
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
@@ -40,6 +42,33 @@ export default function Analytics() {
         <p className="mono mt-1 text-xs uppercase tracking-[0.2em] text-pencil">
           {data.sessions} sessions · {data.closedSessions} closed · {data.anomalies} device anomal{data.anomalies === 1 ? 'y' : 'ies'}
         </p>
+
+        {/* attendance trend sparkline */}
+        <section className="card paper-edge mt-6 p-6">
+          <h2 className="display font-bold">Attendance trend</h2>
+          <svg viewBox="0 0 600 80" className="mt-3 w-full" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="rgba(13,147,115,.25)" />
+                <stop offset="100%" stopColor="rgba(13,147,115,0)" />
+              </linearGradient>
+            </defs>
+            {(() => {
+              const pts = data.heatmap.map((h, i) => ({
+                x: 20 + (i / Math.max(1, data.heatmap.length - 1)) * 560,
+                y: 70 - (h.ratio / 100) * 55,
+              }));
+              const path = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
+              return (
+                <>
+                  <path d={`${path} L580,78 L20,78 Z`} fill="url(#trendFill)" />
+                  <path d={path} fill="none" stroke="#0d9373" strokeWidth="2.5" strokeLinecap="round" />
+                  {pts.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r="3.5" fill="#fffdf8" stroke="#0d9373" strokeWidth="2" />)}
+                </>
+              );
+            })()}
+          </svg>
+        </section>
 
         {/* punch-card heatmap */}
         <section className="card paper-edge mt-6 p-6">

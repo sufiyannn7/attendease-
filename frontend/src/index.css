@@ -135,3 +135,27 @@ h1, h2, h3, .display { font-family: var(--font-display); letter-spacing: -0.02em
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* ── ambient scene ── */
+@keyframes orbFloat {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(40px, -30px) scale(1.15); }
+}
+@keyframes shapeFloat {
+  from { transform: translateY(0) rotate(var(--r, 12deg)); }
+  to { transform: translateY(-18px) rotate(calc(var(--r, 12deg) + 8deg)); }
+}
+.stat-ring {
+  background: conic-gradient(var(--ring-color, #0d9373) calc(var(--pct, 0) * 1%), rgba(13,147,115,.08) 0);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+.stat-ring::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: var(--color-ivory);
+}
+.stat-ring > * { position: relative; z-index: 1; }
