@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import client from '../api/client.js';
 import Navbar from '../components/Navbar.jsx';
@@ -12,6 +12,24 @@ export default function StudentCheckin() {
   const [done, setDone] = useState(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [myRequest, setMyRequest] = useState(null);
+
+  useEffect(() => {
+    client.get('/attendance-requests/mine')
+      .then((r) => setMyRequest(r.data.find((x) => String(x.session?._id) === String(sessionId)) || null))
+      .catch(() => {});
+  }, [sessionId]);
+
+  async function sendRequest() {
+    const reason = window.prompt('Tell your teacher why (e.g. "was in the medical room"):');
+    if (!reason || reason.trim().length < 3) return;
+    try {
+      await client.post(`/sessions/${sessionId}/request`, { reason: reason.trim() });
+      toast('Request sent — your teacher will review it');
+      const r = await client.get('/attendance-requests/mine');
+      setMyRequest(r.data.find((x) => String(x.session?._id) === String(sessionId)) || null);
+    } catch (err) { toast(err.message, 'error'); }
+  }
 
   async function submit(e) {
     e.preventDefault();
@@ -41,6 +59,17 @@ export default function StudentCheckin() {
               {busy ? 'Verifying…' : 'Check in'}
             </button>
             <p className="mono mt-4 text-[10px] uppercase tracking-[0.25em] text-pencil">codes rotate every 60s — screenshots won’t work</p>
+            <div className="mt-5 border-t border-dashed border-line pt-4">
+              {myRequest ? (
+                <p className={`pill px-3 py-1.5 ${myRequest.status === 'approved' ? 'bg-emerald-wash text-emerald-deep' : myRequest.status === 'rejected' ? 'bg-coral-soft text-coral' : 'bg-marker-soft text-[#8a6a10]'}`}>
+                  your request: {myRequest.status}{myRequest.status === 'pending' ? ' — waiting for the teacher' : ''}
+                </p>
+              ) : (
+                <button onClick={sendRequest} className="text-xs font-bold uppercase tracking-[0.2em] text-pencil underline decoration-dotted hover:text-emerald">
+                  ✋ missed the code? request attendance
+                </button>
+              )}
+            </div>
           </form>
         ) : (
           <div className="signal-card mt-8 p-9">

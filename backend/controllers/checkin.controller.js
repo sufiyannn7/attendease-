@@ -15,8 +15,13 @@ exports.qr = asyncHandler(async (req, res) => {
   if (String(session.course.teacher) !== String(req.user.id)) throw new AppError(403, 'Not your course');
   if (session.closed) throw new AppError(409, 'Session is closed — no more check-ins');
   const now = Date.now();
+  const token = makeToken(session._id, now);
+  // Real scannable QR (SVG) so students can scan instead of typing.
+  const QRCode = require('qrcode');
+  const qrSvg = await QRCode.toString(token, { type: 'svg', margin: 1, width: 240 });
   res.json({
-    token: makeToken(session._id, now),
+    token,
+    qrSvg,
     sessionId: session._id,
     courseCode: session.course.code,
     topic: session.topic,

@@ -6,6 +6,7 @@ import Courses from './pages/Courses.jsx';
 import TeacherSession from './pages/TeacherSession.jsx';
 import StudentCheckin from './pages/StudentCheckin.jsx';
 import Analytics from './pages/Analytics.jsx';
+import Guide from './pages/Guide.jsx';
 import NotFound from './pages/NotFound.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="/sessions/:sessionId" element={<TeacherSession />} />
         <Route path="/checkin/:sessionId" element={<StudentCheckin />} />
         <Route path="/courses/:id/analytics" element={<Analytics />} />
+        <Route path="/guide" element={<Guide />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>

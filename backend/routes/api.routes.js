@@ -28,5 +28,10 @@ router.get('/sessions/:sessionId/qr', k.qr);
 router.post('/sessions/:sessionId/checkin', checkinLimiter, k.checkin);
 router.patch('/attendance/:attendanceId/override', c.override);
 router.post('/sessions/:sessionId/close', c.close);
+router.post('/sessions/:sessionId/manual', extra.manualMark);
+router.post('/sessions/:sessionId/request', extra.requestAttendance);
+router.get('/sessions/:sessionId/requests', extra.listRequests);
+router.get('/attendance-requests/mine', extra.myRequests);
+router.post('/attendance-requests/:id/decide', extra.decideRequest);
 
 module.exports = router;

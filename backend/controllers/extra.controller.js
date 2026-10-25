@@ -1,3 +1,4 @@
+const { z } = require('zod');
 const Course = require('../models/Course.model');
 const Session = require('../models/Session.model');
 const Attendance = require('../models/Attendance.model');
@@ -64,4 +65,109 @@ exports.calendar = asyncHandler(async (req, res) => {
       status: bySession.get(String(s._id))?.status || 'not-marked',
     })),
   });
+});
+
+const AttendanceRequest = require('../models/AttendanceRequest.model');
+
+// ── Manual marking: teacher marks ANY enrolled student (even not-marked ones).
+exports.manualMark = asyncHandler(async (req, res) => {
+  if (req.user.role !== 'teacher') throw new AppError(403, 'Teachers only');
+  const parsed = z.object({
+    studentId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid student id'),
+    status: z.enum(['present', 'absent', 'excused']),
+    reason: z.string().trim().min(3, 'A short reason is required for the audit trail').max(300),
+  }).safeParse(req.body);
+  if (!parsed.success) throw new AppError(400, parsed.error.issues[0].message, parsed.error.issues);
+
+  const session = await Session.findById(req.params.sessionId).populate('course');
+  if (!session) throw new AppError(404, 'Session not found');
+  if (String(session.course.teacher) !== String(req.user.id)) throw new AppError(403, 'Not your course');
+  if (!session.course.students.some((s) => String(s) === parsed.data.studentId)) {
+    throw new AppError(404, 'That student is not enrolled in this course');
+  }
+
+  // Upsert: works for both not-marked students and existing records.
+  const record = await Attendance.findOneAndUpdate(
+    { session: session._id, student: parsed.data.studentId },
+    {
+      $set: {
+        status: parsed.data.status,
+        via: 'manual',
+        overrideReason: parsed.data.reason,
+        overriddenBy: req.user.id,
+        at: new Date(),
+        anomalous: false,
+        deviceHash: null,
+      },
+    },
+    { new: true, upsert: true }
+  );
+  res.json(record);
+});
+
+// ── Attendance requests: student asks, teacher decides.
+exports.requestAttendance = asyncHandler(async (req, res) => {
+  const parsed = z.object({ reason: z.string().trim().min(3, 'Tell the teacher why (3+ characters)').max(300) })
+    .safeParse(req.body);
+  if (!parsed.success) throw new AppError(400, parsed.error.issues[0].message, parsed.error.issues);
+
+  const session = await Session.findById(req.params.sessionId).populate('course');
+  if (!session) throw new AppError(404, 'Session not found');
+  if (!session.course.students.some((s) => String(s) === String(req.user.id))) {
+    throw new AppError(403, 'You are not enrolled in this course');
+  }
+  const dupe = await AttendanceRequest.findOne({ session: session._id, student: req.user.id, status: { $in: ['pending', 'approved'] } });
+  if (dupe) throw new AppError(409, dupe.status === 'pending' ? 'You already have a pending request for this session' : 'Your attendance for this session was already approved');
+
+  const request = await AttendanceRequest.create({
+    session: session._id, student: req.user.id, reason: parsed.data.reason,
+  });
+  res.status(201).json(request);
+});
+
+exports.listRequests = asyncHandler(async (req, res) => {
+  if (req.user.role !== 'teacher') throw new AppError(403, 'Teachers only');
+  const session = await Session.findById(req.params.sessionId).populate('course');
+  if (!session) throw new AppError(404, 'Session not found');
+  if (String(session.course.teacher) !== String(req.user.id)) throw new AppError(403, 'Not your course');
+  const requests = await AttendanceRequest.find({ session: session._id, status: 'pending' })
+    .populate('student', 'name rollNo').sort('createdAt');
+  res.json(requests);
+});
+
+exports.decideRequest = asyncHandler(async (req, res) => {
+  if (req.user.role !== 'teacher') throw new AppError(403, 'Teachers only');
+  const parsed = z.object({ decision: z.enum(['approve', 'reject']) }).safeParse(req.body);
+  if (!parsed.success) throw new AppError(400, parsed.error.issues[0].message, parsed.error.issues);
+
+  const request = await AttendanceRequest.findById(req.params.id).populate({ path: 'session', populate: { path: 'course' } });
+  if (!request) throw new AppError(404, 'Request not found');
+  if (String(request.session.course.teacher) !== String(req.user.id)) throw new AppError(403, 'Not your course');
+  if (request.status !== 'pending') throw new AppError(409, 'This request was already decided');
+
+  request.status = parsed.data.decision === 'approve' ? 'approved' : 'rejected';
+  request.decidedAt = new Date();
+  await request.save();
+
+  if (parsed.data.decision === 'approve') {
+    await Attendance.findOneAndUpdate(
+      { session: request.session._id, student: request.student },
+      {
+        $set: {
+          status: 'present', via: 'manual',
+          overrideReason: `Approved from attendance request: "${request.reason}"`,
+          overriddenBy: req.user.id, at: new Date(),
+        },
+      },
+      { new: true, upsert: true }
+    );
+  }
+  res.json(request);
+});
+
+exports.myRequests = asyncHandler(async (req, res) => {
+  const requests = await AttendanceRequest.find({ student: req.user.id })
+    .populate({ path: 'session', select: 'startsAt topic', populate: { path: 'course', select: 'code name' } })
+    .sort('-createdAt').limit(20);
+  res.json(requests);
 });

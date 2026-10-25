@@ -13,6 +13,7 @@ export default function Navbar() {
         </Link>
         <nav className="flex items-center gap-1.5 text-sm font-semibold">
           <NavLink to="/courses" className={({ isActive }) => `rounded-full px-4 py-2 transition ${isActive ? 'bg-emerald-wash text-emerald-deep' : 'text-ink-soft hover:bg-black/5 hover:text-ink'}`}>Courses</NavLink>
+          <NavLink to="/guide" className={({ isActive }) => `rounded-full px-4 py-2 transition ${isActive ? 'bg-emerald-wash text-emerald-deep' : 'text-ink-soft hover:bg-black/5 hover:text-ink'}`}>📖 Guide</NavLink>
           {user ? (
             <>
               <span className="chip hidden border border-line bg-ivory px-3 py-1.5 text-ink-soft md:block">{user?.name} · {user?.role}</span>

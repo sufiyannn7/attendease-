@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import client from '../api/client.js';
 import Navbar from '../components/Navbar.jsx';
 import { Loading, Empty, ErrorState } from '../components/states.jsx';
@@ -13,6 +13,7 @@ export default function Courses() {
   const [courses, setCourses] = useState(null);
   const [error, setError] = useState('');
   const [showNew, setShowNew] = useState(false);
+  const [guideHidden, setGuideHidden] = useState(false);
   const [form, setForm] = useState({ code: '', name: '' });
   const isTeacher = user?.role === 'teacher';
 
@@ -52,6 +53,17 @@ export default function Courses() {
           )}
         </div>
 
+        {/* first-visit onboarding hint */}
+        {!error && courses !== null && !guideHidden && !localStorage.getItem('ae_guide_seen') && (
+          <div className="reveal mt-6 flex flex-wrap items-center gap-4 rounded-[22px] border-2 border-dashed border-emerald/35 bg-emerald-wash px-6 py-4">
+            <span className="text-2xl">👋</span>
+            <p className="flex-1 text-sm font-semibold text-emerald-deep">
+              {isTeacher ? 'New here? See how sessions, QR codes, manual marking and requests work — a 1-minute read.' : 'New here? See how to check in with the classroom code (and what to do if you miss it) — a 1-minute read.'}
+            </p>
+            <Link to="/guide" className="btn-primary rounded-full px-5 py-2 text-sm font-bold">Read the guide →</Link>
+            <button onClick={() => { localStorage.setItem('ae_guide_seen', '1'); setGuideHidden(true); }} aria-label="dismiss" className="text-emerald-deep/50 hover:text-emerald-deep">✕</button>
+          </div>
+        )}
         {error && <div className="mt-8"><ErrorState message={error} onRetry={load} /></div>}
         {!error && courses === null && (
           <div className="mt-10 grid gap-5 sm:grid-cols-2">{[0, 1].map((i) => <div key={i} className="shimmer h-56" />)}</div>

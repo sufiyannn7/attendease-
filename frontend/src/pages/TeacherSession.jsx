@@ -30,6 +30,7 @@ export default function TeacherSession() {
   const toast = useToast();
   const [qr, setQr] = useState(null);
   const [roster, setRoster] = useState(null);
+  const [requests, setRequests] = useState([]);
   const [error, setError] = useState('');
   const [seconds, setSeconds] = useState(15);
 
@@ -41,6 +42,7 @@ export default function TeacherSession() {
         if (alive) { setQr(q.data); setSeconds(15); }
         const r = await client.get(`/sessions/${sessionId}/roster`);
         if (alive) setRoster(r.data);
+        client.get(`/sessions/${sessionId}/requests`).then((q) => { if (alive) setRequests(q.data); }).catch(() => {});
       } catch (err) { if (alive) setError(err.message); }
     };
     pull();
@@ -83,12 +85,36 @@ export default function TeacherSession() {
           <section className="signal-card mt-6 p-8 text-center">
             <div className="radar-sweep pointer-events-none absolute inset-y-0 left-1/2 w-[140%] -translate-x-1/2" style={{ background: 'conic-gradient(from 0deg, rgba(13,147,115,.16), transparent 70deg)' }} />
             <div className="relative">
-              <TokenMatrix token={qr.token} />
-              <p className="mono mt-6 text-4xl font-bold tracking-[0.4em] text-marker glow-amber" style={{ textShadow: '0 0 24px rgba(255,197,61,.4)' }}>{qr.token}</p>
+              <div className="mx-auto w-fit rounded-2xl bg-white p-3 shadow-[0_16px_40px_-12px_rgba(0,0,0,.5)] [&_svg]:h-44 [&_svg]:w-44"
+                dangerouslySetInnerHTML={{ __html: qr.qrSvg || '' }} />
+              <p className="mono mt-5 text-4xl font-bold tracking-[0.4em] text-marker" style={{ textShadow: '0 0 24px rgba(255,197,61,.4)' }}>{qr.token}</p>
               <p className="mono mt-3 text-[10px] uppercase tracking-[0.3em] text-slate-400">
-                students type this code · rotates every minute · refresh in {seconds}s
+                scan or type · rotates every minute · refresh in {seconds}s
               </p>
             </div>
+          </section>
+        )}
+
+        {/* attendance requests */}
+        {requests.length > 0 && (
+          <section className="mt-6 rounded-[22px] border-2 border-marker/50 bg-marker-soft p-5">
+            <h2 className="display font-bold text-[#8a6a10]">✋ Attendance requests ({requests.length})</h2>
+            <ul className="mt-3 space-y-2">
+              {requests.map((r) => (
+                <li key={r._id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-ivory px-4 py-3 shadow-sm">
+                  <div>
+                    <p className="text-sm font-bold">{r.student?.name} <span className="mono text-xs font-normal text-pencil">{r.student?.rollNo}</span></p>
+                    <p className="text-xs italic text-ink-soft">“{r.reason}”</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => act(async () => { await client.post(`/attendance-requests/${r._id}/decide`, { decision: 'approve' }); }, `Approved ${r.student?.name} — marked present`)}
+                      className="btn-primary rounded-full px-4 py-1.5 text-xs font-bold">Approve → present</button>
+                    <button onClick={() => act(async () => { await client.post(`/attendance-requests/${r._id}/decide`, { decision: 'reject' }); }, `Rejected ${r.student?.name}`)}
+                      className="btn-ghost rounded-full px-4 py-1.5 text-xs font-bold">Reject</button>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </section>
         )}
 
@@ -113,13 +139,24 @@ export default function TeacherSession() {
                   <div className="flex items-center gap-2 text-xs">
                     {x.anomalous && <span className="pill bg-coral px-2.5 py-1 text-white">⚠ device anomaly</span>}
                     <span className={`pill px-3 py-1 ${tone.chip}`}>{x.status}</span>
-                    {x._id && !roster.session.closed && (
-                      <>
-                        <button onClick={() => act(() => client.patch(`/attendance/${x._id}/override`, { status: 'excused', reason: 'Manually excused by teacher' }), `${x.student?.name} excused`)}
-                          className="rounded-full border border-line px-3 py-1.5 font-semibold text-ink-soft transition hover:border-marker hover:text-[#8a6a10]">Excuse</button>
-                        <button onClick={() => act(() => client.patch(`/attendance/${x._id}/override`, { status: 'absent', reason: 'Manually marked absent by teacher' }), `${x.student?.name} marked absent`)}
-                          className="rounded-full border border-line px-3 py-1.5 font-semibold text-ink-soft transition hover:border-coral hover:text-coral">Absent</button>
-                      </>
+                    {!roster.session.closed && (
+                      <span className="flex items-center gap-1">
+                        <span className="mono mr-1 hidden text-[9px] uppercase tracking-wider text-pencil sm:block">mark</span>
+                        {[
+                          ['P', 'present', 'bg-emerald hover:brightness-110'],
+                          ['A', 'absent', 'bg-coral hover:brightness-110'],
+                          ['E', 'excused', 'bg-marker hover:brightness-110'],
+                        ].map(([letter, status, tone]) => (
+                          <button key={letter} title={`Mark ${status}`}
+                            onClick={() => act(
+                              () => client.post(`/sessions/${sessionId}/manual`, { studentId: x.student?._id || x.student, status, reason: `Marked ${status} by teacher during session` }),
+                              `${x.student?.name} → ${status}`
+                            )}
+                            className={`grid h-7 w-7 place-items-center rounded-lg text-[11px] font-bold text-white transition ${tone}`}>
+                            {letter}
+                          </button>
+                        ))}
+                      </span>
                     )}
                   </div>
                 </li>
