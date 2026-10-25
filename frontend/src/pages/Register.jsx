@@ -32,39 +32,43 @@ export default function Register() {
       await register({ ...form, name: form.name.trim(), email: form.email.trim(), role, rollNo: form.rollNo.trim() });
       toast('Account ready');
       navigate('/courses');
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setBusy(false);
-    }
+    } catch (err) { setError(err.message); } finally { setBusy(false); }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-10">
-      <div className="w-full max-w-sm">
-        <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold">Join AttendEase</h1>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10">
+      <div className="pointer-events-none absolute -top-20 left-[-8rem] h-96 w-96 rounded-full bg-emerald/10 blur-[110px]" />
+      <div className="pointer-events-none absolute bottom-[-8rem] right-[-8rem] h-80 w-80 rounded-full bg-marker/15 blur-[110px]" />
+
+      <div className="card card-raise tilt-card relative w-full max-w-md p-8 sm:p-10">
+        <div className="text-center">
+          <h1 className="display text-3xl font-bold tracking-tight">Join AttendEase</h1>
+          <p className="mt-1.5 text-sm text-pencil">Teachers run sessions · students check in</p>
         </div>
-        <form onSubmit={submit} className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6">
-          {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
-          <div className="grid grid-cols-2 gap-2">
-            {[['student', 'Student'], ['teacher', 'Teacher']].map(([r, label]) => (
-              <button type="button" key={r} onClick={() => setRole(r)}
-                className={`rounded-xl border px-3 py-2 font-semibold ${role === r ? 'border-emerald2 bg-emerald-soft text-emerald2' : 'border-slate-200 text-slate-500'}`}>{label}</button>
-            ))}
-          </div>
-          <label className="block"><span className="text-sm font-semibold">Name</span>
-            <input value={form.name} onChange={set('name')} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 outline-none focus:border-emerald2" /></label>
-          {role === 'student' && (
-            <label className="block"><span className="text-sm font-semibold">Roll number</span>
-              <input value={form.rollNo} onChange={set('rollNo')} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 outline-none focus:border-emerald2" /></label>
-          )}
-          <label className="block"><span className="text-sm font-semibold">Email</span>
-            <input type="email" value={form.email} onChange={set('email')} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 outline-none focus:border-emerald2" /></label>
-          <label className="block"><span className="text-sm font-semibold">Password</span>
-            <input type="password" value={form.password} onChange={set('password')} className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 outline-none focus:border-emerald2" /></label>
-          <button disabled={busy} className="w-full rounded-xl bg-emerald2 py-2.5 font-semibold text-white disabled:opacity-60">{busy ? 'Creating…' : 'Create account'}</button>
-          <p className="text-center text-sm text-slate-500">Have one? <Link to="/login" className="font-semibold text-emerald2 hover:underline">Log in</Link></p>
+
+        {/* role picker */}
+        <div className="mt-7 grid grid-cols-2 gap-3" role="radiogroup" aria-label="Account type">
+          {[['teacher', '📚', 'Teacher', 'Run sessions, analytics'], ['student', '🎒', 'Student', 'Check in with codes']].map(([r, icon, label, sub]) => (
+            <button type="button" key={r} onClick={() => setRole(r)} aria-pressed={role === r}
+              className={`rounded-2xl border p-4 text-left transition ${role === r ? 'border-emerald/60 bg-emerald-wash shadow-[0_12px_28px_-14px_rgba(13,147,115,.5)]' : 'border-line bg-ivory hover:border-pencil/40'}`}>
+              <span className="text-2xl">{icon}</span>
+              <p className={`display mt-2 font-bold ${role === r ? 'text-emerald-deep' : ''}`}>{label}</p>
+              <p className="mt-0.5 text-[11px] leading-tight text-pencil">{sub}</p>
+            </button>
+          ))}
+        </div>
+
+        <form onSubmit={submit} className="mt-6 space-y-4">
+          {error && <p className="rounded-xl border border-coral/35 bg-coral-soft px-4 py-2.5 text-sm font-semibold text-coral" role="alert">{error}</p>}
+          {[['Name', 'name', 'name'], ...(role === 'student' ? [['Roll number', 'rollNo', 'off']] : []), ['Email', 'email', 'email'], ['Password', 'password', 'new-password']].map(([label, key, ac]) => (
+            <label key={key} className="block">
+              <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-ink-soft">{label}</span>
+              <input type={key === 'email' ? 'email' : key === 'password' ? 'password' : 'text'} value={form[key]} onChange={set(key)} autoComplete={ac}
+                className="mt-1.5 w-full rounded-xl border border-line bg-ivory px-4 py-3 outline-none transition focus:border-emerald focus:ring-2 focus:ring-emerald/20" />
+            </label>
+          ))}
+          <button disabled={busy} className="btn-primary w-full rounded-xl py-3.5 text-base font-bold disabled:opacity-70">{busy ? 'Creating…' : 'Create account'}</button>
+          <p className="text-center text-sm text-pencil">Have one? <Link to="/login" className="font-bold text-emerald-deep hover:underline">Log in</Link></p>
         </form>
       </div>
     </div>
