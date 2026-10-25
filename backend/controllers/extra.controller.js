@@ -171,3 +171,22 @@ exports.myRequests = asyncHandler(async (req, res) => {
     .sort('-createdAt').limit(20);
   res.json(requests);
 });
+
+// Current live (open, time-window active) session for a course — powers the
+// "🔴 Live — check in" student button and the teacher's resume link.
+exports.liveSession = asyncHandler(async (req, res) => {
+  const course = await Course.findById(req.params.id);
+  if (!course) throw new AppError(404, 'Course not found');
+  const isTeacher = String(course.teacher) === String(req.user.id);
+  const isEnrolled = course.students.some((s) => String(s) === String(req.user.id));
+  if (!isTeacher && !isEnrolled) throw new AppError(403, 'Not part of this course');
+
+  const now = new Date();
+  const live = await Session.findOne({
+    course: course._id,
+    closed: false,
+    startsAt: { $lte: new Date(now.getTime() + 5 * 60000) },
+    endsAt: { $gte: now },
+  }).sort('-startsAt');
+  res.json(live || null);
+});

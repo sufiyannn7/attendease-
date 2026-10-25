@@ -14,6 +14,38 @@ export default function Courses() {
   const [error, setError] = useState('');
   const [showNew, setShowNew] = useState(false);
   const [guideHidden, setGuideHidden] = useState(false);
+  const [live, setLive] = useState({});
+  const [starting, setStarting] = useState(null);
+
+  async function pollLive() {
+    if (!courses) return;
+    const updates = {};
+    await Promise.all(courses.map(async (c) => {
+      try {
+        const r = await client.get(`/courses/${c._id}/live-session`);
+        if (r.data) updates[c._id] = r.data;
+      } catch { /* ignore */ }
+    }));
+    setLive(updates);
+  }
+  useEffect(() => {
+    pollLive();
+    const t = setInterval(pollLive, 10000);
+    return () => clearInterval(t);
+  }, [courses?.length]);
+
+  async function startSession(courseId) {
+    setStarting(courseId);
+    try {
+      const now = new Date();
+      const r = await client.post(`/courses/${courseId}/sessions`, {
+        topic: `Class — ${now.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}`,
+        startsAt: now.toISOString(),
+        endsAt: new Date(now.getTime() + 60 * 60000).toISOString(),
+      });
+      navigate(`/sessions/${r.data._id}`);
+    } catch (err) { toast(err.message, 'error'); } finally { setStarting(null); }
+  }
   const [form, setForm] = useState({ code: '', name: '' });
   const isTeacher = user?.role === 'teacher';
 
@@ -89,11 +121,30 @@ export default function Courses() {
                   <p className="mono mt-1 text-[10px] text-pencil">{c.sessionCount ?? 0} sessions</p>
                 </div>
               </div>
+              {live[c._id] && (
+                <p className="mono mt-3 inline-flex items-center gap-2 rounded-full bg-emerald-wash px-3 py-1 pl-2 text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-deep">
+                  <span className="live-dot h-2 w-2 rounded-full bg-emerald text-emerald" /> live now
+                </p>
+              )}
               <div className="mt-5 flex gap-2.5 pl-2">
-                <button onClick={() => navigate(`/courses/${c._id}/analytics`)} className="btn-ghost flex-1 rounded-full py-2.5 text-sm font-semibold">Analytics</button>
                 {isTeacher ? (
-                  <a href={`${client.defaults.baseURL}/courses/${c._id}/export.csv`} target="_blank" rel="noreferrer"
-                    className="btn-marker flex-1 rounded-full py-2.5 text-center text-sm font-bold">⬇ Export CSV</a>
+                  <>
+                    {live[c._id] ? (
+                      <Link to={`/sessions/${live[c._id]._id}`} className="btn-primary flex-1 rounded-full py-2.5 text-center text-sm font-bold">
+                        📷 Open live session + QR →
+                      </Link>
+                    ) : (
+                      <button onClick={() => startSession(c._id)} disabled={starting === c._id}
+                        className="btn-primary flex-1 rounded-full py-2.5 text-sm font-bold disabled:opacity-60">
+                        {starting === c._id ? 'Starting…' : '▶ Start session (shows QR)'}
+                      </button>
+                    )}
+                    <button onClick={() => navigate(`/courses/${c._id}/analytics`)} className="btn-ghost flex-1 rounded-full py-2.5 text-sm font-semibold">Analytics</button>
+                  </>
+                ) : live[c._id] ? (
+                  <Link to={`/checkin/${live[c._id]._id}`} className="btn-primary flex-1 animate-pulse rounded-full py-3 text-center text-sm font-bold">
+                    🔴 Live — check in now →
+                  </Link>
                 ) : (
                   <button onClick={() => navigate(`/courses/${c._id}/analytics`)} className="btn-ink flex-1 rounded-full py-2.5 text-sm font-bold">My attendance</button>
                 )}
