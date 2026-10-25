@@ -25,3 +25,6 @@ client.interceptors.response.use(
 );
 
 export default client;
+
+// Base URL without the /api suffix — for file-download links (CSV exports).
+export const API_ROOT = (import.meta.env.VITE_API_URL || 'http://localhost:5112/api').replace(/\/api$/, '');

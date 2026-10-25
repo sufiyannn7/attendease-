@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import client, { API_ROOT } from '../api/client.js';
+import client from '../api/client.js';
 import Navbar from '../components/Navbar.jsx';
 import { Loading, ErrorState } from '../components/states.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
