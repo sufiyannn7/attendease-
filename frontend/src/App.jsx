@@ -7,13 +7,16 @@ import TeacherSession from './pages/TeacherSession.jsx';
 import StudentCheckin from './pages/StudentCheckin.jsx';
 import Analytics from './pages/Analytics.jsx';
 import Guide from './pages/Guide.jsx';
+import LiveWatcher from './components/LiveWatcher.jsx';
 import NotFound from './pages/NotFound.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Landing />} />
+    <>
+      <LiveWatcher />
+      <Routes>
+        <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route element={<ProtectedRoute />}>
@@ -23,7 +26,8 @@ export default function App() {
         <Route path="/courses/:id/analytics" element={<Analytics />} />
         <Route path="/guide" element={<Guide />} />
       </Route>
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
   );
 }

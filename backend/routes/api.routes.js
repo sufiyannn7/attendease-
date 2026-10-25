@@ -22,6 +22,8 @@ router.get('/courses/:id/analytics', c.analytics);
 router.get('/courses/:id/defaulters', extra.defaulters);
 router.get('/courses/:id/calendar', extra.calendar);
 router.get('/courses/:id/live-session', extra.liveSession);
+router.get('/courses/:id/students', extra.courseStudents);
+router.get('/my/live-sessions', extra.myLiveSessions);
 router.get('/courses/:id/export.csv', c.csv);
 router.get('/courses/:id/my-attendance', k.mine);
 router.get('/sessions/:sessionId/roster', c.roster);

@@ -190,3 +190,28 @@ exports.liveSession = asyncHandler(async (req, res) => {
   }).sort('-startsAt');
   res.json(live || null);
 });
+
+// ── Enrollment management (teacher UI) ──
+exports.courseStudents = asyncHandler(async (req, res) => {
+  if (req.user.role !== 'teacher') throw new AppError(403, 'Teachers only');
+  const course = await Course.findOne({ _id: req.params.id, teacher: req.user.id }).populate('students', 'name rollNo email');
+  if (!course) throw new AppError(404, 'Course not found');
+  res.json(course.students);
+});
+
+// ── Student awareness: any live sessions across ALL my enrolled courses ──
+exports.myLiveSessions = asyncHandler(async (req, res) => {
+  const now = new Date();
+  const courses = await Course.find({ students: req.user.id }).select('_id code name');
+  if (!courses.length) return res.json([]);
+  const live = await Session.find({
+    course: { $in: courses.map((c) => c._id) },
+    closed: false,
+    startsAt: { $lte: new Date(now.getTime() + 5 * 60000) },
+    endsAt: { $gte: now },
+  }).populate('course', 'code name').sort('-startsAt');
+  res.json(live.map((s) => ({
+    _id: s._id, topic: s.topic, startsAt: s.startsAt, endsAt: s.endsAt,
+    courseCode: s.course?.code, courseName: s.course?.name,
+  })));
+});

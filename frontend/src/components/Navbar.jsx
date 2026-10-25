@@ -1,9 +1,21 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import client from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [liveCount, setLiveCount] = useState(0);
+
+  useEffect(() => {
+    if (user?.role !== 'student') return;
+    const poll = () => client.get('/my/live-sessions').then((r) => setLiveCount(r.data.length)).catch(() => {});
+    poll();
+    const t = setInterval(poll, 8000);
+    return () => clearInterval(t);
+  }, [user?.role]);
+
   return (
     <header className="sticky top-0 z-40 border-b border-line/70 bg-paper/85 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
@@ -14,6 +26,12 @@ export default function Navbar() {
         <nav className="flex items-center gap-1.5 text-sm font-semibold">
           <NavLink to="/courses" className={({ isActive }) => `rounded-full px-4 py-2 transition ${isActive ? 'bg-emerald-wash text-emerald-deep' : 'text-ink-soft hover:bg-black/5 hover:text-ink'}`}>Courses</NavLink>
           <NavLink to="/guide" className={({ isActive }) => `rounded-full px-4 py-2 transition ${isActive ? 'bg-emerald-wash text-emerald-deep' : 'text-ink-soft hover:bg-black/5 hover:text-ink'}`}>📖 Guide</NavLink>
+          {liveCount > 0 && (
+            <Link to="/courses" className="flex animate-pulse items-center gap-1.5 rounded-full bg-emerald px-3 py-1.5 text-xs font-bold text-white shadow-[0_8px_20px_-6px_rgba(13,147,115,.5)]">
+              <span className="h-1.5 w-1.5 rounded-full bg-white" />
+              {liveCount} LIVE
+            </Link>
+          )}
           {user ? (
             <>
               <span className="chip hidden border border-line bg-ivory px-3 py-1.5 text-ink-soft md:block">{user?.name} · {user?.role}</span>

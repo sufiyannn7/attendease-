@@ -83,10 +83,11 @@ async function seed() {
       const st = students[j];
       const roll = Math.random();
       let status = 'present';
-      if (DEFAULTERS.has(j)) { if (roll < 0.35) status = 'absent'; }
-      else if (BORDERLINE.has(j)) { if (roll < 0.18) status = 'absent'; }
-      else if (EXCUSED.has(j)) { if (roll < 0.08) status = 'excused'; else if (roll < 0.15) status = 'absent'; }
-      else { if (roll < 0.05) status = 'absent'; }
+      const sessionIdx = dbSessions.indexOf(session);
+      if (DEFAULTERS.has(j)) { if ((sessionIdx + j) % 3 !== 0) status = 'absent'; } // ~67% absent → ~33% attend
+      else if (BORDERLINE.has(j)) { if ((sessionIdx * 7 + j * 3) % 5 === 0) status = 'absent'; } // ~20% absent → ~80% attend
+      else if (EXCUSED.has(j)) { if (sessionIdx % 4 === 0) status = 'excused'; else if ((sessionIdx + j) % 7 === 0) status = 'absent'; }
+      else { if ((sessionIdx * 13 + j * 5) % 19 === 0) status = 'absent'; } // ~5% absent
 
       dbBatch.push({
         session: session._id, student: st._id, status,
