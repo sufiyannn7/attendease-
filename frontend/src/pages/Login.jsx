@@ -28,7 +28,7 @@ export default function Login() {
       <div className="pointer-events-none absolute -top-20 right-[-8rem] h-96 w-96 rounded-full bg-emerald/10 blur-[110px]" />
       <div className="pointer-events-none absolute bottom-[-8rem] left-[-8rem] h-80 w-80 rounded-full bg-marker/15 blur-[110px]" />
 
-      <div className="card card-raise tilt-card relative w-full max-w-md p-8 sm:p-10">
+      <div className="card card-raise relative w-full max-w-md p-8 sm:p-10">
         <div className="text-center">
           <span className="mx-auto grid h-14 w-14 place-items-center rounded-3xl bg-ink text-2xl font-bold text-marker shadow-[0_14px_28px_-10px_rgba(26,35,50,.5)]">✓</span>
           <h1 className="display mt-5 text-3xl font-bold tracking-tight">Class is in session</h1>

@@ -40,7 +40,7 @@ export default function Register() {
       <div className="pointer-events-none absolute -top-20 left-[-8rem] h-96 w-96 rounded-full bg-emerald/10 blur-[110px]" />
       <div className="pointer-events-none absolute bottom-[-8rem] right-[-8rem] h-80 w-80 rounded-full bg-marker/15 blur-[110px]" />
 
-      <div className="card card-raise tilt-card relative w-full max-w-md p-8 sm:p-10">
+      <div className="card card-raise relative w-full max-w-md p-8 sm:p-10">
         <div className="text-center">
           <h1 className="display text-3xl font-bold tracking-tight">Join AttendEase</h1>
           <p className="mt-1.5 text-sm text-pencil">Teachers run sessions · students check in</p>
