@@ -73,14 +73,22 @@ exports.startSession = asyncHandler(async (req, res) => {
 // Live roster for the teacher during a session.
 exports.roster = asyncHandler(async (req, res) => {
   requireTeacher(req);
-  const session = await Session.findById(req.params.sessionId).populate('course');
+  // populate course → students so not-yet-marked students still have name/rollNo
+  const session = await Session.findById(req.params.sessionId).populate({
+    path: 'course',
+    populate: { path: 'students', select: 'name rollNo' },
+  });
   if (!session) throw new AppError(404, 'Session not found');
   if (String(session.course.teacher) !== String(req.user.id)) throw new AppError(403, 'Not your course');
   const records = await Attendance.find({ session: session._id }).populate('student', 'name rollNo');
-  const presentIds = new Set(records.map((r) => String(r.student._id)));
   const roster = session.course.students.map((s) => {
-    const rec = records.find((r) => String(r.student._id) === String(s));
-    return { _id: rec?._id, student: rec ? rec.student : { _id: s }, status: rec ? rec.status : 'not-marked', at: rec?.at, via: rec?.via, anomalous: rec?.anomalous };
+    const rec = records.find((r) => String(r.student._id) === String(s._id || s));
+    return {
+      _id: rec?._id,
+      student: s.name ? s : (rec ? rec.student : { _id: s, name: 'Unknown', rollNo: '?' }),
+      status: rec ? rec.status : 'not-marked',
+      at: rec?.at, via: rec?.via, anomalous: rec?.anomalous,
+    };
   });
   res.json({ session, roster, presentCount: records.filter((r) => r.status === 'present').length, enrolled: session.course.students.length });
 });
