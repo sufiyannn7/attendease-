@@ -28,14 +28,14 @@ export default function Landing() {
             forwarding it is useless.
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-3">
-            <Link to="/register" className="hover-lift rounded-full bg-emerald2 px-9 py-4 font-semibold text-white shadow-xl shadow-emerald-200">Create account →</Link>
-            <Link to="/login" className="glass rounded-full px-9 py-4 font-semibold text-emerald-800">Log in</Link>
+            <Link to="/register" className="btn-3d hover-lift rounded-full bg-emerald2 px-9 py-4 font-semibold text-white shadow-xl shadow-emerald-200">Create account →</Link>
+            <Link to="/login" className="btn-3d glass tilt-card rounded-full px-9 py-4 font-semibold text-emerald-800">Log in</Link>
           </div>
         </section>
 
         {/* check-in demo */}
         <section className="reveal mx-auto mb-10 max-w-2xl">
-          <div className="glass rounded-[2rem] p-8 text-center">
+          <div className="float-3d glass tilt-card rounded-[2rem] p-8 text-center">
             <p className="text-xs font-bold uppercase tracking-widest text-slate-400">on the classroom screen</p>
             <div className="mx-auto mt-5 grid w-fit grid-cols-6 gap-1.5 rounded-2xl bg-slate-900 p-3">
               {Array.from({ length: 36 }).map((_, i) => (
