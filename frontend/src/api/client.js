@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5112/api',
+  baseURL: import.meta.env.VITE_API_URL || 'https://attendease-3lhz.onrender.com/api',
 });
 
 client.interceptors.request.use((config) => {
@@ -27,4 +27,4 @@ client.interceptors.response.use(
 export default client;
 
 // Base URL without the /api suffix — for file-download links (CSV exports).
-export const API_ROOT = (import.meta.env.VITE_API_URL || 'http://localhost:5112/api').replace(/\/api$/, '');
+export const API_ROOT = (import.meta.env.VITE_API_URL || 'https://attendease-3lhz.onrender.com/api').replace(/\/api$/, '');
