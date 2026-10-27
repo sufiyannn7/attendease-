@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "build": "echo 'Backend ready'",
     "dev": "node --watch index.js",
     "seed": "node utils/seed-cli.js",
     "atlas-check": "node utils/atlas-check.js",
