@@ -8,7 +8,7 @@
     "dev": "node --watch index.js",
     "seed": "node utils/seed-cli.js",
     "atlas-check": "node utils/atlas-check.js",
-    "test": "node --test test/"
+    "test": "node --test \"test/*.test.js\""
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
